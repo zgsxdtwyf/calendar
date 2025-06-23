@@ -1,0 +1,211 @@
+<view class="container">
+  <view class="calendar-header">
+    <!-- Month and Year will be displayed here -->
+    <text class="nav-button" bindtap="previousMonth">＜</text>
+    <text>{{year}}年{{month}}月</text>
+    <text class="nav-button" bindtap="nextMonth">＞</text>
+  </view>
+  <view class="weekdays">
+    <text>日</text>
+    <text>一</text>
+    <text>二</text>
+    <text>三</text>
+    <text>四</text>
+    <text>五</text>
+    <text>六</text>
+  </view>
+  <view class="calendar-grid">
+    <!-- Calendar days will be rendered here -->
+    <block wx:for="{{days}}" wx:key="index">
+      <!-- Make the day view a flex column to stack date and schedules -->
+      <!-- Add bindlongpress for paste -->
+      <view class="day {{item.isCurrentMonth ? 'current-month' : 'other-month'}}" bindtap="onDayClick" bindlongpress="onDayLongPress" data-date="{{item.date}}" data-month="{{item.month}}" data-year="{{item.year}}" id="day-{{item.year}}-{{item.month}}-{{item.date}}">
+        <text>{{item.date}}</text>
+        <!-- Render schedules for this day -->
+        <block wx:for="{{item.schedules}}" wx:for-item="schedule" wx:key="scheduleIndex">
+          <view class="schedule-item-in-day" style="background-color: {{schedule.color}};">
+            <text>
+              {{schedule.isAllDay ? schedule.title : schedule.startTime + ' ' + schedule.title}}
+            </text>
+          </view>
+        </block>
+      </view>
+    </block>
+  </view>
+  <!-- Schedule Popup Structure -->
+  <view wx:if="{{showSchedulePopup}}" class="schedule-popup">
+    <view class="popup-content">
+      <view class="popup-header">
+        <text>{{selectedDate}}</text>
+        <text class="close-button" bindtap="hideSchedulePopup">X</text>
+      </view>
+      <view class="schedule-list">
+        <!-- Schedule items will be rendered here -->
+        <block wx:if="{{schedules.length > 0}}">
+          <block wx:for="{{schedules}}" wx:key="id">
+            <!-- Add bindtap to schedule items -->
+            <!-- Add bindlongpress for options -->
+            <view class="schedule-item" bindtap="onScheduleItemClick" bindlongpress="onScheduleItemLongPress" data-schedule="{{item}}">
+              <view class="color-square" style="background-color: {{item.color}};"></view>
+              <view class="schedule-content">
+                <text class="schedule-title">{{item.title}}</text>
+                <text class="schedule-time" wx:if="{{!item.isAllDay}}">
+                  {{item.startTime}} - {{item.endTime}}
+                </text>
+              </view>
+            </view>
+          </block>
+        </block>
+        <block wx:else>
+          <view class="no-schedule-message">无相关日期日程</view>
+        </block>
+      </view>
+      <view class="add-schedule-button" bindtap="onAddScheduleClick">+</view>
+    </view>
+  </view>
+  <!-- Add Schedule/Tag Popup Structure -->
+  <view wx:if="{{showAddOptionsPopup}}" class="schedule-popup">
+    <view class="popup-content">
+      <view class="popup-header">
+        <text>选择类型</text>
+        <text class="close-button" bindtap="hideAddOptionsPopup">X</text>
+      </view>
+      <view class="schedule-list">
+        <view class="schedule-item" bindtap="onAddSchedule">日程</view>
+        <view class="schedule-item" bindtap="onAddTag">标签</view>
+      </view>
+    </view>
+  </view>
+  <!-- 新增: 标签列表弹窗结构 -->
+  <view wx:if="{{showTagListPopup}}" class="schedule-popup">
+    <view class="popup-content">
+      <view class="popup-header">
+        <text>选择标签</text>
+        <text class="close-button" bindtap="hideTagListPopup">X</text>
+      </view>
+      <view class="schedule-list">
+        <block wx:for="{{allTags}}" wx:key="title">
+          <view class="schedule-item" bindtap="onTagSelect" data-tag="{{item}}">
+            <view class="color-square" style="background-color: {{item.color}};"></view>
+            <view class="schedule-content">
+              <text class="schedule-title">{{item.title}}</text>
+              <text class="schedule-time" wx:if="{{!item.isAllDay}}">
+                {{item.startTime}} - {{item.endTime}}
+              </text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+  <!-- Create Schedule Popup Structure -->
+  <view wx:if="{{showCreateSchedulePopup}}" class="schedule-popup">
+    <view class="popup-content">
+      <view class="popup-header">
+        <text>新建日程</text>
+        <text class="close-button" bindtap="hideCreateSchedulePopup">X</text>
+      </view>
+      <view class="create-schedule-form">
+        <view class="form-item">
+          <text>标题:</text>
+          <input placeholder="请输入日程标题" bindinput="onTitleInput" value="{{scheduleTitle}}" />
+        </view>
+        <view class="form-item">
+          <text>颜色:</text>
+          <view class="color-picker">
+            <block wx:for="{{colors}}" wx:key="*this">
+              <view class="color-option {{scheduleColor === item ? 'selected' : ''}}" style="background-color: {{item}};" data-color="{{item}}" bindtap="onColorSelect"></view>
+            </block>
+          </view>
+        </view>
+        <view class="form-item">
+          <text>全天事件:</text>
+          <switch checked="{{isAllDay}}" bindchange="onAllDayChange" />
+        </view>
+        <block wx:if="{{!isAllDay}}">
+          <view class="form-item">
+            <text>开始时间:</text>
+            <picker mode="time" value="{{startTime}}" start="00:00" end="23:59" bindchange="onStartTimeChange">
+              <view class="picker">{{startTime}}</view>
+            </picker>
+          </view>
+          <view class="form-item">
+            <text>结束时间:</text>
+            <picker mode="time" value="{{endTime}}" start="00:00" end="23:59" bindchange="onEndTimeChange">
+              <view class="picker">{{endTime}}</view>
+            </picker>
+          </view>
+        </block>
+      </view>
+      <view class="save-button" bindtap="saveSchedule">保存</view>
+    </view>
+  </view>
+  <!-- Edit Schedule Popup Structure -->
+  <view wx:if="{{showEditSchedulePopup}}" class="schedule-popup">
+    <view class="popup-content">
+      <view class="popup-header">
+        <text>编辑日程</text>
+        <!-- Add Delete Icon -->
+        <image class="delete-icon" src="/icons/trash.jpg" bindtap="onDeleteScheduleClick"></image>
+        <text class="close-button" bindtap="hideEditSchedulePopup">X</text>
+      </view>
+      <view class="create-schedule-form">
+        <!-- Reuse form styles -->
+        <view class="form-item">
+          <text>标题:</text>
+          <input placeholder="请输入日程标题" bindinput="onEditingTitleInput" value="{{editingScheduleTitle}}" />
+        </view>
+        <view class="form-item">
+          <text>颜色:</text>
+          <view class="color-picker">
+            <block wx:for="{{colors}}" wx:key="*this">
+              <view class="color-option {{editingScheduleColor === item ? 'selected' : ''}}" style="background-color: {{item}};" data-color="{{item}}" bindtap="onEditingColorSelect"></view>
+            </block>
+          </view>
+        </view>
+        <view class="form-item">
+          <text>全天事件:</text>
+          <switch checked="{{editingIsAllDay}}" bindchange="onEditingAllDayChange" />
+        </view>
+        <block wx:if="{{!editingIsAllDay}}">
+          <view class="form-item">
+            <text>开始时间:</text>
+            <picker mode="time" value="{{editingStartTime}}" start="00:00" end="23:59" bindchange="onEditingStartTimeChange">
+              <view class="picker">{{editingStartTime}}</view>
+            </picker>
+          </view>
+          <view class="form-item">
+            <text>结束时间:</text>
+            <picker mode="time" value="{{editingEndTime}}" start="00:00" end="23:59" bindchange="onEditingEndTimeChange">
+              <view class="picker">{{editingEndTime}}</view>
+            </picker>
+          </view>
+        </block>
+      </view>
+      <view class="save-button" bindtap="saveEditedSchedule">保存</view>
+    </view>
+  </view>
+  <!-- Schedule Options Popup Structure (Copy, Cut, Save as Tag) -->
+  <view wx:if="{{showScheduleOptionsPopup}}" class="schedule-popup" bindtap="hideScheduleOptionsPopup">
+    <view class="popup-content" catchtap="noop">
+      <!-- Prevent tap from closing popup -->
+      <view class="popup-header">
+        <text>选择操作</text>
+        <text class="close-button" bindtap="hideScheduleOptionsPopup">X</text>
+      </view>
+      <view class="schedule-list">
+        <!-- Reuse schedule-list styles -->
+        <view class="schedule-item" bindtap="onCopySchedule">复制</view>
+        <view class="schedule-item" bindtap="onCutSchedule">剪切</view>
+        <view class="schedule-item" bindtap="onSaveAsTag">保存为标签</view>
+      </view>
+    </view>
+  </view>
+  <!-- Paste Popup Structure -->
+  <view wx:if="{{showPastePopup}}" class="paste-popup" style="top: {{pastePopupTop}}px; left: {{pastePopupLeft}}px;" bindtap="hidePastePopup">
+    <view class="paste-content" catchtap="noop">
+      <!-- Prevent tap from closing popup -->
+      <view class="paste-option" bindtap="onPasteSchedule">粘贴</view>
+    </view>
+  </view>
+</view>
