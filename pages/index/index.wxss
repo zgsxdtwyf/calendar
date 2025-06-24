@@ -1,0 +1,289 @@
+.other-month {
+  color: #ccc;
+}
+
+/* Add styles for the calendar and schedule components here */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  height: 100vh; /* 新增：让容器占据整个视口高度 */
+  box-sizing: border-box; /* 新增：确保内边距包含在高度计算内 */
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 20rpx 0;
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.nav-button {
+  padding: 0 20rpx;
+  color: #007bff;
+}
+
+.weekdays {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+  padding: 10rpx 0;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.weekdays text {
+  width: calc(100% / 7);
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid; /* 修改：使用 CSS Grid 布局 */
+  grid-template-columns: repeat(7, 1fr); /* 新增：创建 7 列，每列等宽 */
+  grid-template-rows: repeat(6, 1fr); /* 新增：创建 6 行，每行等高 */
+  width: 100%;
+  flex-grow: 1; /* 新增：让日历网格占据剩余所有垂直空间 */
+  height: 0; /* 新增：配合 flex-grow 使用，确保在 flex 容器中正确伸缩 */
+  min-height: 0; /* 新增：配合 flex-grow 使用 */
+  /* 移除这些边框，让每个日期的边框来构成网格 */
+  /* border-top: 1rpx solid #eee; */
+  /* border-left: 1rpx solid #eee; */
+}
+
+.day {
+  
+  display: flex;
+  flex-direction: column; /* Stack date and schedules */
+  align-items: center;
+  justify-content: flex-start; /* 新增：让日期和日程从单元格顶部开始排列 */
+  padding: 5rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  position: relative; /* Needed for paste popup positioning */
+}
+
+.day text {
+  margin-bottom: 5rpx; /* Space between date and schedules */
+}
+
+.current-month {
+  color: #333;
+}
+
+.other-month {
+  color: #ccc;
+}
+
+.schedule-item-in-day {
+  font-size: 20rpx; /* Smaller font for day view */
+  color: #fff;
+  padding: 2rpx 5rpx;
+  margin-bottom: 2rpx;
+  border-radius: 4rpx;
+  max-width: 100%; /* Prevent overflow */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* Popup Styles */
+.schedule-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Full height overlay */
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Align content to bottom */
+  z-index: 999; /* Ensure it's on top */
+}
+
+.popup-content {
+  background-color: #fff;
+  width: 100%;
+  max-height: 80%; /* Limit content height */
+  border-top-left-radius: 20rpx;
+  border-top-right-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Hide overflow if content is too tall */
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between; /* Distribute space */
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.close-button {
+  font-size: 40rpx; /* Make it larger */
+  color: #999;
+  margin-left: 20rpx; /* Space from delete button */
+}
+
+/* Add styles for the delete icon */
+.delete-icon {
+  width: 40rpx; /* Adjust size */
+  height: 40rpx; /* Adjust size */
+  margin-left: auto; /* Push to the right */
+  margin-right: 20rpx; /* Space from close button */
+}
+
+
+.schedule-list {
+  flex-grow: 1; /* Allow list to take available space */
+  overflow-y: auto; /* Enable scrolling */
+  padding: 0 20rpx;
+}
+
+.schedule-item {
+  display: flex; /* 新增：使用 Flexbox 布局 */
+  align-items: center; /* 新增：垂直居中对齐子项 */
+  padding: 15rpx;
+  border-bottom: 1rpx solid #eee;
+  background-color: #fff;
+}
+
+/* 新增：颜色方块样式 */
+.color-square {
+  width: 24rpx; /* 颜色方块的宽度 */
+  height: 24rpx; /* 颜色方块的高度 */
+  border-radius: 4rpx; /* 轻微圆角 */
+  margin-right: 15rpx; /* 颜色方块与文本之间的间距 */
+  flex-shrink: 0; /* 防止颜色方块被压缩 */
+}
+/* 新增：日程/标签内容容器 */
+.schedule-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* 占据剩余空间 */
+}
+
+/* 新增：日程/标签标题样式 */
+.schedule-title {
+  font-size: 32rpx; /* 标题字体大小 */
+  color: #333; /* 标题颜色 */
+}
+
+/* 新增：日程/标签时间样式 */
+.schedule-time {
+  font-size: 24rpx; /* 时间字体大小 */
+  color: #999; /* 时间颜色 */
+  margin-top: 5rpx; /* 与标题的间距 */
+}
+
+.no-schedule-message {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+}
+
+.add-schedule-button {
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 60rpx;
+  position: absolute;
+  bottom: 40rpx;
+  right: 40rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+/* Create Schedule Form Styles */
+.create-schedule-form {
+  padding: 20rpx;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.form-item text {
+  width: 150rpx; /* Label width */
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-item input,
+.form-item picker {
+  flex-grow: 1;
+  border: 1rpx solid #eee;
+  padding: 10rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.color-option {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  margin-right: 15rpx;
+  border: 2rpx solid transparent; /* Add border for selection */
+}
+
+.color-option.selected {
+  border-color: #333; /* Highlight selected color */
+}
+
+.save-button {
+  background-color: #007bff;
+  color: #fff;
+  text-align: center;
+  padding: 20rpx;
+  font-size: 32rpx;
+  margin: 20rpx;
+  border-radius: 8rpx;
+}
+
+/* Add styles for the paste popup */
+.paste-popup {
+  position: fixed;
+  width: 150rpx; /* Adjust size */
+  background-color: #fff;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* Higher than schedule popup */
+  overflow: hidden;
+}
+
+.paste-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.paste-option {
+  padding: 15rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+  border-bottom: 1rpx solid #eee;
+}
+
+.paste-option:last-child {
+  border-bottom: none;
+}
