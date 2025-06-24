@@ -38,7 +38,7 @@
 }
 
 .weekdays text {
-  width: calc(100% / 7);
+  width: 100%;
   text-align: center;
 }
 
@@ -56,12 +56,11 @@
 }
 
 .day {
-  
-  display: flex;
+  width: 100%;
+  text-align: center;
   flex-direction: column; /* Stack date and schedules */
   align-items: center;
   justify-content: flex-start; /* 新增：让日期和日程从单元格顶部开始排列 */
-  padding: 5rpx;
   box-sizing: border-box;
   font-size: 28rpx;
   position: relative; /* Needed for paste popup positioning */
@@ -69,14 +68,6 @@
 
 .day text {
   margin-bottom: 5rpx; /* Space between date and schedules */
-}
-
-.current-month {
-  color: #333;
-}
-
-.other-month {
-  color: #ccc;
 }
 
 .schedule-item-in-day {
@@ -89,7 +80,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  width: 90rpx;
 }
+
+.current-month {
+  color: #333;
+}
+
+.other-month {
+  color: #ccc;
+}
+
 
 
 /* Popup Styles */
