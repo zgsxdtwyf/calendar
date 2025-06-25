@@ -6,13 +6,13 @@
     <text class="nav-button" bindtap="nextMonth">＞</text>
   </view>
   <view class="weekdays">
-    <text>日</text>
     <text>一</text>
     <text>二</text>
     <text>三</text>
     <text>四</text>
     <text>五</text>
     <text>六</text>
+    <text>日</text>
   </view>
   <view class="calendar-grid">
     <!-- Calendar days will be rendered here -->

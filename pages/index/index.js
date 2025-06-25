@@ -930,65 +930,56 @@ Page({
 
     renderCalendar: function (year, month) {
         const days = [];
-
-        // 计算上个月的信息
-        const prevMonthYear = month === 1 ? year - 1 : year;
-        const prevMonth = month === 1 ? 12 : month - 1;
-        const daysInPrevMonth = new Date(prevMonthYear, prevMonth, 0).getDate();
-
-        // 计算当前月的信息
-        const daysInCurrentMonth = new Date(year, month, 0).getDate();
-        // 获取当前月第一天是星期几 (0-6, 0是周日)
-        const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
-
-        // 添加上个月的日期（显示在当前月日历开头的几天）
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            const date = daysInPrevMonth - firstDayOfWeek + 1 + i;
-            const dateKey = `${prevMonthYear}-${prevMonth}-${date}`;
-            const daySchedules = this.data.allSchedules[dateKey] || [];
+        
+        // 转换周起始日为周一（0=周一，6=周日）
+        const firstDay = new Date(year, month - 1, 1);
+        const startDay = (firstDay.getDay() + 6) % 7; // 转换周日历
+        
+        // 上月填充逻辑（当首日不是周一时）
+        if (startDay > 0) {
+          const prevMonthLastDate = new Date(year, month - 1, 0).getDate();
+          for (let i = prevMonthLastDate - startDay + 1; i <= prevMonthLastDate; i++) {
+            const prevYear = month === 1 ? year - 1 : year;
+            const prevMonth = month === 1 ? 12 : month - 1;
             days.push({
-                date: date,
-                month: prevMonth,
-                year: prevMonthYear,
-                isCurrentMonth: false,
-                schedules: daySchedules // 包含日程数据
+              date: i,
+              year: prevYear,
+              month: prevMonth,
+              isCurrentMonth: false,
+              schedules: this.data.allSchedules[`${prevYear}-${prevMonth}-${i}`] || []
             });
+          }
         }
-
-        // 添加当前月的日期
-        for (let i = 1; i <= daysInCurrentMonth; i++) {
-            const dateKey = `${year}-${month}-${i}`;
-            const daySchedules = this.data.allSchedules[dateKey] || [];
+      
+        // 当前月日期
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+          days.push({
+            date: i,
+            year: year,
+            month: month,
+            isCurrentMonth: true,
+            schedules: this.data.allSchedules[`${year}-${month}-${i}`] || []
+          });
+        }
+      
+        // 下月填充（保持42天网格）
+        const remainingCells = 42 - days.length;
+        if (remainingCells > 0) {
+          const nextMonthYear = month === 12 ? year + 1 : year;
+          const nextMonth = month === 12 ? 1 : month + 1;
+          
+          for (let i = 1; i <= remainingCells; i++) {
             days.push({
-                date: i,
-                month: month,
-                year: year,
-                isCurrentMonth: true,
-                schedules: daySchedules
+              date: i,
+              year: nextMonthYear,
+              month: nextMonth,
+              isCurrentMonth: false,
+              schedules: this.data.allSchedules[`${nextMonthYear}-${nextMonth}-${i}`] || []
             });
+          }
         }
-
-        // 添加下个月的日期（填充日历，使其保持6行42天）
-        const totalDaysDisplayed = days.length;
-        const daysToFill = 42 - totalDaysDisplayed; // 目标是显示6周共42天
-
-        const nextMonthYear = month === 12 ? year + 1 : year;
-        const nextMonth = month === 12 ? 1 : month + 1;
-
-        for (let i = 1; i <= daysToFill; i++) {
-            const dateKey = `${nextMonthYear}-${nextMonth}-${i}`;
-            const daySchedules = this.data.allSchedules[dateKey] || [];
-            days.push({
-                date: i,
-                month: nextMonth,
-                year: nextMonthYear,
-                isCurrentMonth: false,
-                schedules: daySchedules // 包含日程数据
-            });
-        }
-
-        this.setData({
-            days: days
-        });
-    }
+      
+        this.setData({ days: days });
+      }
 })
