@@ -16,7 +16,7 @@ Page({
         isAllDay: true, // Default to all-day
         startTime: '09:00', // Default start time
         endTime: '10:00', // Default end time
-        colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2'], // Available colors
+        colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'], // Available colors
         allSchedules: {}, // Store all schedules keyed by date (YYYY-M-D)
 
         // Data for Edit Schedule Popup
@@ -38,31 +38,82 @@ Page({
         pastePopupTop: 0, // Position for paste popup
         pastePopupLeft: 0, // Position for paste popup
         // 新增: 标签相关数据
-        allTags: [], 
+        allTags: [],
         showTagListPopup: false, // 控制标签列表弹窗的显示
-
+        isSidebarShow: false, // 控制侧边栏显示/隐藏的状态
     },
+
+    /**
+   * 切换侧边栏的显示状态
+   */
+    toggleSidebar: function () {
+        this.setData({
+            isSidebarShow: !this.data.isSidebarShow
+        });
+    },
+
+    /**
+     * 跳转到标签管理页面
+     */
+    goToTagManagement: function () {
+        // 关闭侧边栏
+        this.setData({
+            isSidebarShow: false
+        });
+        // 跳转到标签管理页面，请确保 'pages/tagManagement/tagManagement' 是您标签管理页面的正确路径
+        wx.navigateTo({
+            url: '/pages/tagManagement/tagManagement',
+            fail: (err) => {
+                console.error('跳转标签管理页面失败:', err);
+                wx.showToast({
+                    title: '页面不存在',
+                    icon: 'none'
+                });
+            }
+        });
+    },
+
     onLoad: function () {
         // Page initialization logic
         // Load schedules from storage on load
-        const allSchedules = wx.getStorageSync('allSchedules') || {};
-        // 修改：默认标签现在是对象数组
-        const defaultTags = [
-            { title: '工作', color: '#1E90FF', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-            { title: '学习', color: '#32CD32', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-            { title: '会议', color: '#FF6347', isAllDay: false, startTime: '14:00', endTime: '15:00' },
-            { title: '健身', color: '#8A2BE2', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-            { title: '购物', color: '#FFD700', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-            { title: '生日', color: '#FF69B4', isAllDay: true, startTime: '09:00', endTime: '10:00' }
-        ];
-        const allTags = wx.getStorageSync('allTags') || defaultTags; // 加载已保存的标签，如果为空则提供默认标签
+        // const allSchedules = wx.getStorageSync('allSchedules') || {};
+        // // 修改：默认标签现在是对象数组
+        // const defaultTags = [
+        //     { title: '工作', color: '#1E90FF', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+        //     { title: '学习', color: '#32CD32', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+        //     { title: '会议', color: '#FF6347', isAllDay: false, startTime: '14:00', endTime: '15:00' },
+        //     { title: '健身', color: '#8A2BE2', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+        //     { title: '购物', color: '#FFD700', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+        //     { title: '生日', color: '#FF69B4', isAllDay: true, startTime: '09:00', endTime: '10:00' }
+        // ];
+        // const allTags = wx.getStorageSync('allTags') || defaultTags; // 加载已保存的标签，如果为空则提供默认标签
+        // this.setData({
+        //     allSchedules: allSchedules,
+        //     allTags: allTags // 新增：加载标签数据
+        // });
+        // this.renderCalendar(this.data.year, this.data.month);
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
         this.setData({
-            allSchedules: allSchedules,
-            allTags: allTags // 新增：加载标签数据
+            year: year,
+            month: month,
+            selectedDate: '', // Initialize selectedDate
+            schedules: [], // Initialize schedules
+            allSchedules: wx.getStorageSync('allSchedules') || {},
+            allTags: wx.getStorageSync('allTags') || [], // Load allTags on load
+            colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'],
         });
-        this.renderCalendar(this.data.year, this.data.month);
+        this.renderCalendar(year, month);
     },
 
+    onShow: function () {
+        // 页面显示时重新加载所有标签数据
+        const allTags = wx.getStorageSync('allTags') || [];
+        this.setData({
+            allTags: allTags
+        });
+    },
     // Event handlers for date clicks and button clicks will be added here
     onDayClick: function (event) {
         const { date, month, year } = event.currentTarget.dataset;
@@ -99,7 +150,12 @@ Page({
             showAddOptionsPopup: false
         });
     },
-
+    // 新增：隐藏新建日程弹窗
+    hideCreateSchedulePopup: function () {
+        this.setData({
+            showCreateSchedulePopup: false
+        });
+    },
     onAddSchedule: function () {
         console.log('添加日程');
         // Show the create schedule popup
@@ -872,7 +928,7 @@ Page({
         if (selectedDateParts) {
             currentSelectedDateKey = `${selectedDateParts[1]}-${selectedDateParts[2]}-${selectedDateParts[3]}`;
         }
-        
+
         if (currentSelectedDateKey && (currentSelectedDateKey === pasteDateKey || currentSelectedDateKey === originalDateKeyForCut)) {
             this.setData({
                 schedules: allSchedules[currentSelectedDateKey] || []
@@ -930,56 +986,64 @@ Page({
 
     renderCalendar: function (year, month) {
         const days = [];
-        
+        const today = new Date(); // 获取当前日期
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentDate = today.getDate();
         // 转换周起始日为周一（0=周一，6=周日）
         const firstDay = new Date(year, month - 1, 1);
         const startDay = (firstDay.getDay() + 6) % 7; // 转换周日历
-        
+
         // 上月填充逻辑（当首日不是周一时）
         if (startDay > 0) {
-          const prevMonthLastDate = new Date(year, month - 1, 0).getDate();
-          for (let i = prevMonthLastDate - startDay + 1; i <= prevMonthLastDate; i++) {
-            const prevYear = month === 1 ? year - 1 : year;
-            const prevMonth = month === 1 ? 12 : month - 1;
-            days.push({
-              date: i,
-              year: prevYear,
-              month: prevMonth,
-              isCurrentMonth: false,
-              schedules: this.data.allSchedules[`${prevYear}-${prevMonth}-${i}`] || []
-            });
-          }
+            const prevMonthLastDate = new Date(year, month - 1, 0).getDate();
+            for (let i = prevMonthLastDate - startDay + 1; i <= prevMonthLastDate; i++) {
+                const prevYear = month === 1 ? year - 1 : year;
+                const prevMonth = month === 1 ? 12 : month - 1;
+                days.push({
+                    date: i,
+                    year: prevYear,
+                    month: prevMonth,
+                    isCurrentMonth: false,
+                    schedules: this.data.allSchedules[`${prevYear}-${prevMonth}-${i}`] || [],
+                    isToday: false // 非当前月日期，isToday 为 false
+                });
+            }
         }
-      
+
         // 当前月日期
         const daysInMonth = new Date(year, month, 0).getDate();
         for (let i = 1; i <= daysInMonth; i++) {
-          days.push({
-            date: i,
-            year: year,
-            month: month,
-            isCurrentMonth: true,
-            schedules: this.data.allSchedules[`${year}-${month}-${i}`] || []
-          });
+            // 判断是否是今天
+            const isToday = (year === currentYear && month === currentMonth && i === currentDate);
+            days.push({
+                date: i,
+                year: year,
+                month: month,
+                isCurrentMonth: true,
+                schedules: this.data.allSchedules[`${year}-${month}-${i}`] || [],
+                isToday: isToday // 设置 isToday 属性
+            });
         }
-      
+
         // 下月填充（保持42天网格）
         const remainingCells = 42 - days.length;
         if (remainingCells > 0) {
-          const nextMonthYear = month === 12 ? year + 1 : year;
-          const nextMonth = month === 12 ? 1 : month + 1;
-          
-          for (let i = 1; i <= remainingCells; i++) {
-            days.push({
-              date: i,
-              year: nextMonthYear,
-              month: nextMonth,
-              isCurrentMonth: false,
-              schedules: this.data.allSchedules[`${nextMonthYear}-${nextMonth}-${i}`] || []
-            });
-          }
+            const nextMonthYear = month === 12 ? year + 1 : year;
+            const nextMonth = month === 12 ? 1 : month + 1;
+
+            for (let i = 1; i <= remainingCells; i++) {
+                days.push({
+                    date: i,
+                    year: nextMonthYear,
+                    month: nextMonth,
+                    isCurrentMonth: false,
+                    schedules: this.data.allSchedules[`${nextMonthYear}-${nextMonth}-${i}`] || [],
+                    isToday: false // 非当前月日期，isToday 为 false
+                });
+            }
         }
-      
+
         this.setData({ days: days });
-      }
+    }
 })

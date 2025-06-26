@@ -19,7 +19,7 @@
     <block wx:for="{{days}}" wx:key="index">
       <!-- Make the day view a flex column to stack date and schedules -->
       <!-- Add bindlongpress for paste -->
-      <view class="day {{item.isCurrentMonth ? 'current-month' : 'other-month'}}" bindtap="onDayClick" bindlongpress="onDayLongPress" data-date="{{item.date}}" data-month="{{item.month}}" data-year="{{item.year}}" id="day-{{item.year}}-{{item.month}}-{{item.date}}">
+      <view class="day {{item.isCurrentMonth ? 'current-month' : 'other-month'}}{{item.isToday ? ' today' : ''}}" bindtap="onDayClick" bindlongpress="onDayLongPress" data-date="{{item.date}}" data-month="{{item.month}}" data-year="{{item.year}}" id="day-{{item.year}}-{{item.month}}-{{item.date}}">
         <text>{{item.date}}</text>
         <!-- Render schedules for this day -->
         <block wx:for="{{item.schedules}}" wx:for-item="schedule" wx:key="scheduleIndex">
@@ -31,7 +31,7 @@
         </block>
       </view>
     </block>
-  </view>
+  </view> 
   <!-- Schedule Popup Structure -->
   <view wx:if="{{showSchedulePopup}}" class="schedule-popup">
     <view class="popup-content">
@@ -208,4 +208,18 @@
       <view class="paste-option" bindtap="onPasteSchedule">粘贴</view>
     </view>
   </view>
+</view>
+<!-- Avatar Button -->
+<view class="avatar-button" bindtap="toggleSidebar">
+  <image src="/icons/未登录头像.jpg" class="avatar-image"></image> <!-- 修改：使用图片代替文字 -->
+</view>
+
+<!-- Sidebar Overlay -->
+<view class="sidebar-overlay {{isSidebarShow ? 'show' : ''}}" bindtap="toggleSidebar"></view>
+
+<!-- Settings Sidebar -->
+<view class="settings-sidebar {{isSidebarShow ? 'show' : ''}}">
+  <view class="sidebar-header">设置</view>
+  <view class="sidebar-menu-item" bindtap="goToTagManagement">标签管理</view>
+  <!-- Add more menu items here if needed -->
 </view>

@@ -1,0 +1,302 @@
+// d:\01-codes\calendar\calendar_1.1\calendar\pages\tagManagement\tagManagement.js
+Page({
+  data: {
+    allTags: [], // 存储所有标签
+    showCreateTagPopup: false, // 控制新建标签弹窗的显示
+    newTagTitle: '',
+    newTagColor: '#1E90FF', // 默认颜色
+    newIsAllDay: true, // 默认全天
+    newStartTime: '09:00',
+    newEndTime: '10:00',
+    colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'], // 可选颜色
+    startX: 0, // 触摸开始时的X坐标
+    startY: 0, // 触摸开始时的Y坐标
+    currentTagIdSwiped: null, // 当前被滑动打开的标签ID
+    slideBtnWidth: 150, // 删除按钮的宽度 (rpx)，需与wxss中保持一致
+  },
+
+  onLoad: function (options) {
+    // 页面加载时执行
+    this.loadTags();
+  },
+
+  onShow: function() {
+    // 页面显示/从其他页面返回时执行，确保标签列表是最新的
+    this.loadTags();
+  },
+
+  /**
+   * 加载所有标签
+   */
+  loadTags: function() {
+    const allTags = wx.getStorageSync('allTags') || [];
+     // 为每个标签项添加slideOffset属性，用于控制滑动位置
+     const tagsWithOffset = allTags.map(tag => ({ ...tag, slideOffset: 0 }));
+     this.setData({
+       allTags: tagsWithOffset,
+       currentTagIdSwiped: null // 重新加载时关闭所有滑动
+    });
+  },
+
+  /**
+   * 点击新建标签按钮
+   */
+  onAddTagClick: function() {
+    // 如果有标签处于滑动状态，先关闭
+    if (this.data.currentTagIdSwiped) {
+        this.closeSwipedTag();
+      }
+    this.setData({
+      showCreateTagPopup: true,
+      // 重置表单字段
+      newTagTitle: '',
+      newTagColor: this.data.colors[0] || '#1E90FF',
+      newIsAllDay: true,
+      newStartTime: '09:00',
+      newEndTime: '10:00',
+    });
+  },
+
+  /**
+   * 隐藏新建标签弹窗
+   */
+  hideCreateTagPopup: function() {
+    this.setData({
+      showCreateTagPopup: false
+    });
+  },
+
+  /**
+   * 标题输入
+   */
+  onTitleInput: function(e) {
+    this.setData({
+      newTagTitle: e.detail.value
+    });
+  },
+
+  /**
+   * 颜色选择
+   */
+  onColorSelect: function(e) {
+    this.setData({
+      newTagColor: e.currentTarget.dataset.color
+    });
+  },
+
+  /**
+   * 全天事件开关
+   */
+  onAllDayChange: function(e) {
+    this.setData({
+      newIsAllDay: e.detail.value
+    });
+  },
+
+  /**
+   * 开始时间选择
+   */
+  onStartTimeChange: function(e) {
+    this.setData({
+      newStartTime: e.detail.value
+    });
+  },
+
+  /**
+   * 结束时间选择
+   */
+  onEndTimeChange: function(e) {
+    this.setData({
+      newEndTime: e.detail.value
+    });
+  },
+
+  /**
+   * 保存新标签
+   */
+  saveNewTag: function() {
+    const { newTagTitle, newTagColor, newIsAllDay, newStartTime, newEndTime} = this.data;
+
+    if (!newTagTitle) {
+      wx.showToast({
+        title: '标签标题不能为空',
+        icon: 'none'
+      });
+      return;
+    }
+
+    let currentallTags = wx.getStorageSync('allTags') || [];
+
+    // 检查是否已存在相同标题的标签
+    const isDuplicate = allTags.some(tag => tag.title === newTagTitle);
+    if (isDuplicate) {
+      wx.showToast({
+        title: '标签已存在',
+        icon: 'none'
+      });
+      return;
+    }
+    const newTag = {
+      id: Date.now() + Math.random().toString(36).substr(2, 9), // 唯一 ID
+      title: newTagTitle,
+      color: newTagColor,
+      isAllDay: newIsAllDay,
+      startTime: newStartTime,
+      endTime: newEndTime,
+      slideOffset: 0 // 新增标签时初始化slideOffset
+    };
+
+    currentAllTags.push(newTag); // 将新标签添加到从本地存储获取的数组中
+    wx.setStorageSync('allTags', currentAllTags); // 将更新后的数组保存到本地存储
+
+    this.setData({
+      allTags: currentAllTags, // 更新页面的 data
+      showCreateTagPopup: false,
+      newTagTitle: '', // 清空表单
+      newTagColor: this.data.colors[0] || '#1E90FF',
+      newIsAllDay: true,
+      newStartTime: '09:00',
+      newEndTime: '10:00',
+    });
+
+    wx.showToast({
+      title: '标签保存成功',
+      icon: 'success'
+    });
+  },
+  /**
+   * 触摸开始事件
+   */
+  onTouchStart: function(e) {
+    // 如果有其他标签处于滑动状态，先关闭
+    if (this.data.currentTagIdSwiped && this.data.currentTagIdSwiped !== e.currentTarget.dataset.id) {
+      this.closeSwipedTag();
+    }
+    this.setData({
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY
+    });
+  },
+
+  /**
+   * 触摸移动事件
+   */
+  onTouchMove: function(e) {
+    const { startX, startY, slideBtnWidth, allTags } = this.data;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - startX;
+    const deltaY = currentY - startY;
+    const tagId = e.currentTarget.dataset.id;
+
+    // 判断是水平滑动还是垂直滑动
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // 水平滑动，阻止页面垂直滚动
+      // e.preventDefault(); // 小程序中通常不需要手动阻止，flex布局会处理
+
+      let newOffset = 0;
+      if (deltaX < 0) { // 左滑
+        newOffset = Math.max(-slideBtnWidth, deltaX);
+      } else { // 右滑
+        newOffset = Math.min(0, deltaX);
+      }
+
+      const updatedTags = allTags.map(tag => {
+        if (tag.id === tagId) {
+          return { ...tag, slideOffset: newOffset };
+        }
+        return tag;
+      });
+
+      this.setData({
+        allTags: updatedTags
+      });
+    }
+  },
+
+  /**
+   * 触摸结束事件
+   */
+  onTouchEnd: function(e) {
+    const { slideBtnWidth, allTags } = this.data;
+    const tagId = e.currentTarget.dataset.id;
+    const currentTag = allTags.find(tag => tag.id === tagId);
+
+    if (!currentTag) return;
+
+    let finalOffset = 0;
+    if (currentTag.slideOffset < -slideBtnWidth / 2) { // 滑动距离超过一半，则完全打开
+      finalOffset = -slideBtnWidth;
+      this.setData({
+        currentTagIdSwiped: tagId
+      });
+    } else { // 否则，关闭
+      finalOffset = 0;
+      this.setData({
+        currentTagIdSwiped: null
+      });
+    }
+
+    const updatedTags = allTags.map(tag => {
+      if (tag.id === tagId) {
+        return { ...tag, slideOffset: finalOffset };
+      }
+      return tag;
+    });
+
+    this.setData({
+      allTags: updatedTags
+    });
+  },
+
+  /**
+   * 关闭当前已滑动的标签
+   */
+  closeSwipedTag: function() {
+    const { currentTagIdSwiped, allTags } = this.data;
+    if (currentTagIdSwiped) {
+      const updatedTags = allTags.map(tag => {
+        if (tag.id === currentTagIdSwiped) {
+          return { ...tag, slideOffset: 0 };
+        }
+        return tag;
+      });
+      this.setData({
+        allTags: updatedTags,
+        currentTagIdSwiped: null
+      });
+    }
+  },
+
+  /**
+   * 删除标签
+   */
+  onDeleteTag: function(e) {
+    const tagIdToDelete = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除此标签吗？',
+      success: (res) => {
+        if (res.confirm) {
+          let allTags = wx.getStorageSync('allTags') || [];
+          const updatedTags = allTags.filter(tag => tag.id !== tagIdToDelete);
+          wx.setStorageSync('allTags', updatedTags);
+
+          this.setData({
+            allTags: updatedTags,
+            currentTagIdSwiped: null // 删除后重置滑动状态
+          });
+
+          wx.showToast({
+            title: '删除成功',
+            icon: 'success',
+            duration: 1500
+          });
+        } else {
+          // 用户取消删除，关闭滑动
+          this.closeSwipedTag();
+        }
+      }
+    });
+  },
+});     

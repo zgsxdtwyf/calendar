@@ -1,0 +1,213 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* 占据整个视口高度 */
+    box-sizing: border-box;
+    padding: 20rpx;
+    background-color: #f8f8f8;
+}
+
+.tag-list {
+    flex-grow: 1; /* 占据剩余空间 */
+    overflow-y: auto;  /* 允许滚动 */
+    padding-bottom: 120rpx;   /* 为底部按钮留出空间 */
+    display: flex;  /* 使其成为 flex 容器 */
+    flex-direction: column;   /* 使子项垂直堆叠 */
+    align-items: center; /* 使子项在交叉轴（水平方向）居中 */
+    width: 100%; /* 确保tag-list占据父容器的全部宽度 */
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10rpx;
+    background-color: #fff;
+    border-radius: 10rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+    /* 新增样式：固定宽度并居中 */
+    width: 80%; /* 设置为tag-list宽度的90% */
+    margin: 0 10rpx 10rpx 10rpx; /* 设置左右外边距为20rpx，底部外边距为10rpx */
+    box-sizing: border-box; /* 确保宽度包含内边距和边框 */
+    position: relative; /* 相对定位，用于子元素的绝对定位 */
+    overflow: hidden; /* 隐藏超出部分，确保删除按钮初始不可见 */
+}
+
+/* 新增：标签内容容器，用于滑动 */
+.tag-item-content {
+    display: flex;
+    align-items: center;
+    padding: 20rpx; /* 将原tag-item的padding移到这里 */
+    width: 100%; /* 占据tag-item的全部宽度 */
+    box-sizing: border-box;
+    transition: transform 0.3s ease; /* 添加过渡效果 */
+    background-color: #fff; /* 确保滑动时背景色一致 */
+    z-index: 2; /* 确保内容在删除按钮之上 */
+    position: relative; /* 确保z-index生效 */
+}
+
+/* 新增：删除按钮样式 */
+.tag-item-delete {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 150rpx; /* 删除按钮的宽度 */
+    background-color: #dc3545; /* 红色背景 */
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28rpx;
+    z-index: 1; /* 确保在内容之下 */
+}
+.color-square {
+    width: 40rpx;
+    height: 40rpx;
+    border-radius: 8rpx;
+    margin-right: 20rpx;
+    flex-shrink: 0;
+}
+
+.tag-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.tag-title {
+    font-size: 32rpx;
+    color: #333;
+    font-weight: bold;
+}
+
+.tag-time {
+    font-size: 24rpx;
+    color: #999;
+    margin-top: 5rpx;
+}
+
+.no-tags-message {
+    text-align: center;
+    padding: 40rpx;
+    color: #999;
+    font-size: 28rpx;
+}
+
+/* 新建标签按钮 */
+.add-tag-button {
+    width: 100rpx;
+    height: 100rpx;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 60rpx;
+    position: fixed;
+    /* 固定在右下角 */
+    bottom: 40rpx;
+    right: 40rpx;
+    box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* 新建标签弹窗样式 (与日程弹窗类似) */
+.tag-popup {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* 居中显示 */
+    z-index: 999;
+}
+
+.popup-content {
+    background-color: #fff;
+    width: 90%;
+    /* 弹窗宽度 */
+    max-height: 80%;
+    /* 限制高度 */
+    border-radius: 20rpx;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20rpx;
+    border-bottom: 1rpx solid #eee;
+    font-size: 32rpx;
+    font-weight: bold;
+}
+
+.close-button {
+    font-size: 40rpx;
+    color: #999;
+}
+
+.create-tag-form {
+    padding: 20rpx;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.form-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20rpx;
+}
+
+.form-item text {
+    width: 150rpx;
+    font-size: 28rpx;
+    color: #333;
+}
+
+.form-item input,
+.form-item picker {
+    flex-grow: 1;
+    border: 1rpx solid #eee;
+    padding: 10rpx;
+    border-radius: 8rpx;
+    font-size: 28rpx;
+}
+
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.color-option {
+    width: 50rpx;
+    height: 50rpx;
+    border-radius: 50%;
+    margin-right: 15rpx;
+    border: 2rpx solid transparent;
+}
+
+.color-option.selected {
+    border-color: #007bff;
+    /* 选中颜色边框 */
+    border-width: 4rpx;
+}
+
+.save-button {
+    background-color: #007bff;
+    color: #fff;
+    text-align: center;
+    padding: 20rpx;
+    font-size: 32rpx;
+    margin: 20rpx;
+    border-radius: 8rpx;
+}
