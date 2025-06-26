@@ -128,7 +128,7 @@ Page({
     let currentallTags = wx.getStorageSync('allTags') || [];
 
     // 检查是否已存在相同标题的标签
-    const isDuplicate = allTags.some(tag => tag.title === newTagTitle);
+    const isDuplicate = currentallTags.some(tag => tag.title === newTagTitle);
     if (isDuplicate) {
       wx.showToast({
         title: '标签已存在',
@@ -146,11 +146,11 @@ Page({
       slideOffset: 0 // 新增标签时初始化slideOffset
     };
 
-    currentAllTags.push(newTag); // 将新标签添加到从本地存储获取的数组中
-    wx.setStorageSync('allTags', currentAllTags); // 将更新后的数组保存到本地存储
+    currentallTags.push(newTag); // 将新标签添加到从本地存储获取的数组中
+    wx.setStorageSync('allTags', currentallTags); // 将更新后的数组保存到本地存储
 
     this.setData({
-      allTags: currentAllTags, // 更新页面的 data
+      allTags: currentallTags, // 更新页面的 data
       showCreateTagPopup: false,
       newTagTitle: '', // 清空表单
       newTagColor: this.data.colors[0] || '#1E90FF',
