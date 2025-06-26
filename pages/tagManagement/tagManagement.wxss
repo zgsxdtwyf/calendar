@@ -31,6 +31,8 @@
     box-sizing: border-box; /* 确保宽度包含内边距和边框 */
     position: relative; /* 相对定位，用于子元素的绝对定位 */
     overflow: hidden; /* 隐藏超出部分，确保删除按钮初始不可见 */
+    min-height: 100rpx; /* 新增：确保标签项的最小高度 */
+    flex-shrink: 0; /* 新增：防止标签项缩小 */
 }
 
 /* 新增：标签内容容器，用于滑动 */
