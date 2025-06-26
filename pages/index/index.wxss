@@ -67,20 +67,26 @@
 }
 
 .day text {
-  margin-bottom: 5rpx; /* Space between date and schedules */
+  margin-bottom: 22rpx; /* Space between date and schedules */
 }
 
 .schedule-item-in-day {
   font-size: 20rpx; /* Smaller font for day view */
   color: #fff;
-  padding: 2rpx 5rpx;
+  padding: 2rpx 5rpx 8rpx 8rpx; /* 修改：增加左侧内边距，使文字从圆角后开始显示 */
   margin-bottom: 2rpx;
   border-radius: 4rpx;
   max-width: 100%; /* Prevent overflow */
+  max-height: 28rpx;         /* 增加最小高度 */
+  border-radius: 10rpx;  
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 90rpx;
+  display: flex; /* 新增：使日程条成为 Flex 容器 */
+  justify-content: flex-start; /* 新增：内容从左侧开始排列 */
+  align-items: center; /* 保持垂直居中 */
+  line-height: 24rpx; /* 新增：设置行高，确保文字垂直居中且不被裁剪 */
 }
 
 .current-month {
