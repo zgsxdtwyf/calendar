@@ -13,14 +13,23 @@ Page({
     startY: 0, // 触摸开始时的Y坐标
     currentTagIdSwiped: null, // 当前被滑动打开的标签ID
     slideBtnWidth: 150, // 删除按钮的宽度 (rpx)，需与wxss中保持一致
+    rpxRatio: 1, // 新增：用于px到rpx的转换比例
   },
 
   onLoad: function (options) {
     // 页面加载时执行
     this.loadTags();
+    // 新增：获取系统信息，计算rpx与px的转换比例
+    wx.getSystemInfo({
+      success: (res) => {
+        this.setData({
+          rpxRatio: 750 / res.windowWidth
+        });
+      }
+    });
   },
 
-  onShow: function() {
+  onShow: function () {
     // 页面显示/从其他页面返回时执行，确保标签列表是最新的
     this.loadTags();
   },
@@ -28,24 +37,24 @@ Page({
   /**
    * 加载所有标签
    */
-  loadTags: function() {
+  loadTags: function () {
     const allTags = wx.getStorageSync('allTags') || [];
-     // 为每个标签项添加slideOffset属性，用于控制滑动位置
-     const tagsWithOffset = allTags.map(tag => ({ ...tag, slideOffset: 0 }));
-     this.setData({
-       allTags: tagsWithOffset,
-       currentTagIdSwiped: null // 重新加载时关闭所有滑动
+    // 为每个标签项添加slideOffset属性，用于控制滑动位置
+    const tagsWithOffset = allTags.map(tag => ({ ...tag, slideOffset: 0 }));
+    this.setData({
+      allTags: tagsWithOffset,
+      currentTagIdSwiped: null // 重新加载时关闭所有滑动
     });
   },
 
   /**
    * 点击新建标签按钮
    */
-  onAddTagClick: function() {
+  onAddTagClick: function () {
     // 如果有标签处于滑动状态，先关闭
     if (this.data.currentTagIdSwiped) {
-        this.closeSwipedTag();
-      }
+      this.closeSwipedTag();
+    }
     this.setData({
       showCreateTagPopup: true,
       // 重置表单字段
@@ -60,7 +69,7 @@ Page({
   /**
    * 隐藏新建标签弹窗
    */
-  hideCreateTagPopup: function() {
+  hideCreateTagPopup: function () {
     this.setData({
       showCreateTagPopup: false
     });
@@ -69,7 +78,7 @@ Page({
   /**
    * 标题输入
    */
-  onTitleInput: function(e) {
+  onTitleInput: function (e) {
     this.setData({
       newTagTitle: e.detail.value
     });
@@ -78,7 +87,7 @@ Page({
   /**
    * 颜色选择
    */
-  onColorSelect: function(e) {
+  onColorSelect: function (e) {
     this.setData({
       newTagColor: e.currentTarget.dataset.color
     });
@@ -87,7 +96,7 @@ Page({
   /**
    * 全天事件开关
    */
-  onAllDayChange: function(e) {
+  onAllDayChange: function (e) {
     this.setData({
       newIsAllDay: e.detail.value
     });
@@ -96,7 +105,7 @@ Page({
   /**
    * 开始时间选择
    */
-  onStartTimeChange: function(e) {
+  onStartTimeChange: function (e) {
     this.setData({
       newStartTime: e.detail.value
     });
@@ -105,7 +114,7 @@ Page({
   /**
    * 结束时间选择
    */
-  onEndTimeChange: function(e) {
+  onEndTimeChange: function (e) {
     this.setData({
       newEndTime: e.detail.value
     });
@@ -114,8 +123,8 @@ Page({
   /**
    * 保存新标签
    */
-  saveNewTag: function() {
-    const { newTagTitle, newTagColor, newIsAllDay, newStartTime, newEndTime} = this.data;
+  saveNewTag: function () {
+    const { newTagTitle, newTagColor, newIsAllDay, newStartTime, newEndTime } = this.data;
 
     if (!newTagTitle) {
       wx.showToast({
@@ -167,9 +176,9 @@ Page({
   /**
    * 触摸开始事件
    */
-  onTouchStart: function(e) {
+  onTouchStart: function (e) {
     // 如果有其他标签处于滑动状态，先关闭
-    if (this.data.currentTagIdSwiped && this.data.currentTagIdSwiped !== e.currentTarget.dataset.id) {
+    if (this.data.currentTagIdSwiped) {
       this.closeSwipedTag();
     }
     this.setData({
@@ -181,24 +190,24 @@ Page({
   /**
    * 触摸移动事件
    */
-  onTouchMove: function(e) {
-    const { startX, startY, slideBtnWidth, allTags } = this.data;
+  onTouchMove: function (e) {
+    const { startX, startY, slideBtnWidth, allTags, rpxRatio } = this.data;
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
-    const deltaX = currentX - startX;
+    const deltaX_px = currentX - startX; // 计算像素差
     const deltaY = currentY - startY;
     const tagId = e.currentTarget.dataset.id;
 
     // 判断是水平滑动还是垂直滑动
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (Math.abs(deltaX_px) > Math.abs(deltaY)) { // 使用像素差进行判断
       // 水平滑动，阻止页面垂直滚动
       // e.preventDefault(); // 小程序中通常不需要手动阻止，flex布局会处理
-
+      const deltaX_rpx = deltaX_px * rpxRatio; // 将像素差转换为rpx
       let newOffset = 0;
-      if (deltaX < 0) { // 左滑
-        newOffset = Math.max(-slideBtnWidth, deltaX);
+      if (deltaX_rpx < 0) { // 左滑
+        newOffset = Math.max(-slideBtnWidth,deltaX_rpx); // 使用rpx值进行比较
       } else { // 右滑
-        newOffset = Math.min(0, deltaX);
+        newOffset = Math.min(0, deltaX_rpx); // 使用rpx值进行比较
       }
 
       const updatedTags = allTags.map(tag => {
@@ -217,13 +226,14 @@ Page({
   /**
    * 触摸结束事件
    */
-  onTouchEnd: function(e) {
-    const { slideBtnWidth, allTags } = this.data;
+  onTouchEnd: function (e) {
+    const { slideBtnWidth, allTags, rpxRatio } = this.data;
     const tagId = e.currentTarget.dataset.id;
     const currentTag = allTags.find(tag => tag.id === tagId);
 
     if (!currentTag) return;
 
+    // 确保 slideOffset 也是 rpx 值，这里不需要再次转换，因为onTouchMove已经处理了
     let finalOffset = 0;
     if (currentTag.slideOffset < -slideBtnWidth / 2) { // 滑动距离超过一半，则完全打开
       finalOffset = -slideBtnWidth;
@@ -252,7 +262,7 @@ Page({
   /**
    * 关闭当前已滑动的标签
    */
-  closeSwipedTag: function() {
+  closeSwipedTag: function () {
     const { currentTagIdSwiped, allTags } = this.data;
     if (currentTagIdSwiped) {
       const updatedTags = allTags.map(tag => {
@@ -271,15 +281,18 @@ Page({
   /**
    * 删除标签
    */
-  onDeleteTag: function(e) {
+  onDeleteTag: function (e) {
     const tagIdToDelete = e.currentTarget.dataset.id;
+    console.log('尝试删除标签，ID:', tagIdToDelete); // 新增日志
     wx.showModal({
       title: '确认删除',
       content: '确定要删除此标签吗？',
       success: (res) => {
         if (res.confirm) {
           let allTags = wx.getStorageSync('allTags') || [];
+          console.log('删除前从存储获取的标签:', allTags); // 新增日志
           const updatedTags = allTags.filter(tag => tag.id !== tagIdToDelete);
+          console.log('删除后剩余的标签:', updatedTags); // 新增日志
           wx.setStorageSync('allTags', updatedTags);
 
           this.setData({
