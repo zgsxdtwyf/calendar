@@ -5,6 +5,8 @@
     <text>{{year}}年{{month}}月</text>
     <text class="nav-button" bindtap="nextMonth">＞</text>
   </view>
+
+  <view class="calendar-swipe-area" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <view class="weekdays">
     <text>一</text>
     <text>二</text>
@@ -31,6 +33,7 @@
         </block>
       </view>
     </block>
+  </view> 
   </view> 
   <!-- Schedule Popup Structure -->
   <view wx:if="{{showSchedulePopup}}" class="schedule-popup">

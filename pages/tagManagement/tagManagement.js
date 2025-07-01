@@ -8,7 +8,7 @@ Page({
     newIsAllDay: true, // 默认全天
     newStartTime: '09:00',
     newEndTime: '10:00',
-    colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'], // 可选颜色
+    colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E', '#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'], // 可选颜色
     startX: 0, // 触摸开始时的X坐标
     startY: 0, // 触摸开始时的Y坐标
     currentTagIdSwiped: null, // 当前被滑动打开的标签ID
@@ -106,8 +106,23 @@ Page({
    * 开始时间选择
    */
   onStartTimeChange: function (e) {
+    const newStartTime = e.detail.value;
+    // 解析开始时间
+    const [startHour, startMinute] = newStartTime.split(':').map(Number);
+
+    // 计算结束时间：开始时间后1小时
+    let endHour = startHour + 1;
+    if (endHour >= 24) {
+      endHour = endHour - 24; // 跨越到第二天
+    }
+    const endMinute = startMinute;
+
+    // 格式化结束时间为 HH:MM 字符串
+    const newEndTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+
     this.setData({
-      newStartTime: e.detail.value
+      newStartTime: newStartTime,
+      newEndTime: newEndTime // 自动更新结束时间
     });
   },
 

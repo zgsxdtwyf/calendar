@@ -4,23 +4,26 @@
 
 /* Add styles for the calendar and schedule components here */
 
+/* 确保容器是flex布局，且垂直排列 */
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  height: 100vh; /* 占据整个视口高度 */
+  box-sizing: border-box;
   padding: 20rpx;
-  height: 100vh; /* 新增：让容器占据整个视口高度 */
-  box-sizing: border-box; /* 新增：确保内边距包含在高度计算内 */
+  background-color: #f8f8f8;
 }
 
+/* 日历头部样式 */
 .calendar-header {
   display: flex;
-  justify-content: center; /* 修改：将内容居中，使切换按钮靠近年月 */
+  justify-content: space-between;
   align-items: center;
-  width: 100%;
   padding: 20rpx 0;
   font-size: 36rpx;
   font-weight: bold;
+  color: #333;
+  flex-shrink: 0; /* 防止头部缩小 */
 }
 
 .nav-button {
@@ -28,35 +31,35 @@
   color: #007bff;
 }
 
+/* 星期几的样式 */
 .weekdays {
   display: flex;
-  width: 100%;
   justify-content: space-around;
   padding: 10rpx 0;
+  background-color: #f0f0f0;
   font-size: 28rpx;
   color: #666;
+  flex-shrink: 0; /* 防止星期几缩小 */
 }
 
 .weekdays text {
-  width: 100%;
-  text-align: center;
+    width: calc(100% / 7);
+    text-align: center;
 }
 
+/* 日历网格样式 */
 .calendar-grid {
-  display: grid; /* 修改：使用 CSS Grid 布局 */
-  grid-template-columns: repeat(7, 1fr); /* 新增：创建 7 列，每列等宽 */
-  grid-template-rows: repeat(6, 1fr); /* 新增：创建 6 行，每行等高 */
-  width: 100%;
-  flex-grow: 1; /* 新增：让日历网格占据剩余所有垂直空间 */
-  height: 0; /* 新增：配合 flex-grow 使用，确保在 flex 容器中正确伸缩 */
-  min-height: 0; /* 新增：配合 flex-grow 使用 */
-  /* 移除这些边框，让每个日期的边框来构成网格 */
-  /* border-top: 1rpx solid #eee; */
-  /* border-left: 1rpx solid #eee; */
+  flex-grow: 1; /* 占据 calendar-swipe-area 内的剩余垂直空间 */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  /* grid-template-rows: repeat(6, 1fr); /* 假设最多6行 */ 
+  /* gap: 1rpx; */
+  background-color: #e0e0e0; /* 网格线颜色 */
+  border-radius: 10rpx;
+  overflow: hidden; /* 确保内容不溢出 */
 }
-
 .day {
-  width: 100%;
+  display: flex; /* 新增：确保 .day 元素是 flex 容器，以便其内部的 flex 属性生效 */
   text-align: center;
   flex-direction: column; /* Stack date and schedules */
   align-items: center;
@@ -66,6 +69,7 @@
   position: relative; /* Needed for paste popup positioning */
   height: 100%; /* 新增：确保日期格子占据其网格单元格的全部高度 */
   overflow: hidden; /* 新增：隐藏超出日格子的内容，配合内部滚动 */
+  background-color: #fff; /* 新增：为每个日期格添加背景色，使其边界更清晰 */
 }
 /* 新增：当日日期特殊显示样式 */
 .day.today {
@@ -386,3 +390,17 @@
 .sidebar-menu-item:active {
   background-color: #f5f5f5; /* 点击时的背景色 */
 }
+
+/* 新增：滑动区域样式 */
+.calendar-swipe-area {
+    flex-grow: 1; /* 占据剩余垂直空间 */
+    display: flex; /* 使其成为 flex 容器 */
+    flex-direction: column; /* 使子项（weekdays和calendar-grid）垂直堆叠 */
+    overflow: hidden; /* 隐藏超出部分，防止滑动时出现滚动条 */
+    width: 100%; /* 新增：确保占据父容器的全部宽度 */
+}
+
+
+
+
+

@@ -16,7 +16,7 @@ Page({
         isAllDay: true, // Default to all-day
         startTime: '09:00', // Default start time
         endTime: '10:00', // Default end time
-        colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'], // Available colors
+        colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E','#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'], // Available colors
         allSchedules: {}, // Store all schedules keyed by date (YYYY-M-D)
 
         // Data for Edit Schedule Popup
@@ -41,6 +41,9 @@ Page({
         allTags: [],
         showTagListPopup: false, // 控制标签列表弹窗的显示
         isSidebarShow: false, // 控制侧边栏显示/隐藏的状态
+        startX: 0, // 触摸开始时的X坐标
+        startY: 0, // 触摸开始时的Y坐标
+        rpxRatio: 1, // 用于px到rpx的转换比例 
     },
 
     /**
@@ -102,9 +105,17 @@ Page({
             schedules: [], // Initialize schedules
             allSchedules: wx.getStorageSync('allSchedules') || {},
             allTags: wx.getStorageSync('allTags') || [], // Load allTags on load
-            colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E'],
+            colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E', '#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'],
         });
         this.renderCalendar(year, month);
+         // 新增：获取系统信息，计算rpx与px的转换比例
+         wx.getSystemInfo({
+            success: (res) => {
+                this.setData({
+                    rpxRatio: 750 / res.windowWidth
+                });
+            }
+        });
     },
 
     onShow: function () {
@@ -385,8 +396,23 @@ Page({
 
     // Handle start time picker change
     onStartTimeChange: function (e) {
+        const newStartTime = e.detail.value;
+        // 解析开始时间
+        const [startHour, startMinute] = newStartTime.split(':').map(Number);
+
+        // 计算结束时间：开始时间后1小时
+        let endHour = startHour + 1;
+        if (endHour >= 24) {
+            endHour = endHour - 24; // 跨越到第二天
+        }
+        const endMinute = startMinute;
+
+        // 格式化结束时间为 HH:MM 字符串
+        const newEndTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+
         this.setData({
-            startTime: e.detail.value
+            startTime: newStartTime,
+            endTime: newEndTime // 自动更新结束时间
         });
     },
 
@@ -420,8 +446,23 @@ Page({
 
     // Handle editing start time picker change
     onEditingStartTimeChange: function (e) {
+        const newEditingStartTime = e.detail.value;
+        // 解析开始时间
+        const [startHour, startMinute] = newEditingStartTime.split(':').map(Number);
+
+        // 计算结束时间：开始时间后1小时
+        let endHour = startHour + 1;
+        if (endHour >= 24) {
+            endHour = endHour - 24; // 跨越到第二天
+        }
+        const endMinute = startMinute;
+
+        // 格式化结束时间为 HH:MM 字符串
+        const newEditingEndTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+
         this.setData({
-            editingStartTime: e.detail.value
+            editingStartTime: newEditingStartTime,
+            editingEndTime: newEditingEndTime // 自动更新编辑结束时间
         });
     },
 
@@ -482,6 +523,7 @@ Page({
         // Save to storage
         wx.setStorageSync('allSchedules', allSchedules);
 
+
         // Update data and re-render calendar or update specific day
         this.setData({
             allSchedules: allSchedules,
@@ -504,6 +546,38 @@ Page({
         });
     },
 
+     // 新增：触摸开始事件
+     onTouchStart: function (e) {
+        this.setData({
+            startX: e.touches[0].clientX,
+            startY: e.touches[0].clientY
+        });
+    },
+
+    // 新增：触摸结束事件
+    onTouchEnd: function (e) {
+        const { startX, startY, rpxRatio } = this.data;
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+
+        const deltaX_px = endX - startX;
+        const deltaY_px = endY - startY;
+
+        // 将像素差转换为rpx差，用于阈值比较
+        const deltaX_rpx = deltaX_px * rpxRatio;
+        const deltaY_rpx = deltaY_px * rpxRatio;
+
+        const minSwipeDistance = 50; // rpx, 最小滑动距离
+
+        // 判断是水平滑动且滑动距离足够
+        if (Math.abs(deltaX_rpx) > Math.abs(deltaY_rpx) && Math.abs(deltaX_rpx) > minSwipeDistance) {
+            if (deltaX_rpx > 0) { // 右滑
+                this.previousMonth();
+            } else { // 左滑
+                this.nextMonth();
+            }
+        }
+    },
     // Handle editing title input
     onEditingTitleInput: function (e) {
         this.setData({
@@ -837,23 +911,56 @@ Page({
     onDayLongPress: function (event) {
         const { date, month, year } = event.currentTarget.dataset;
         const dateKey = `${year}-${month}-${date}`;
-        const { clipboardSchedule } = this.data;
+        const { clipboardSchedule, clipboardOperation, rpxRatio } = this.data; // 获取 rpxRatio
 
-        if (clipboardSchedule) {
-            // Get the position of the long-pressed day element
-            const query = wx.createSelectorQuery();
-            query.select(`#day-${year}-${month}-${date}`).boundingClientRect();
-            query.exec((res) => {
-                if (res && res[0]) {
-                    const rect = res[0];
+        if (clipboardSchedule && clipboardOperation) {
+            // 获取长按日期元素的尺寸和位置
+            wx.createSelectorQuery().in(this).select(`#day-${year}-${month}-${date}`).boundingClientRect(rect => {
+                if (rect) {
+                    const systemInfo = wx.getSystemInfoSync();
+                    const windowWidthPx = systemInfo.windowWidth;
+                    const windowHeightPx = systemInfo.windowHeight;
+
+                    const pastePopupWidthRpx = 150; // 从 index.wxss 获取的弹窗宽度
+                    // 估算弹窗高度，根据 .paste-option 的 padding 和 font-size 估算
+                    // .paste-option: padding: 15rpx; font-size: 28rpx;
+                    // 估算高度约为 15 + 28 + 15 = 58rpx，加上边框等，取 60rpx
+                    const pastePopupHeightRpx = 60; 
+
+                    // 将 rpx 单位转换为 px 单位
+                    const pastePopupWidthPx = pastePopupWidthRpx / rpxRatio;
+                    const pastePopupHeightPx = pastePopupHeightRpx / rpxRatio;
+
+                    // 初始计算弹窗位置：水平居中于日期格子，垂直顶部位于日期格子中心
+                    let calculatedLeft = rect.left + rect.width / 2 - (pastePopupWidthPx / 2);
+                    let calculatedTop = rect.top + rect.height / 2;
+
+                    // 边界检查和调整：确保弹窗不会超出屏幕右侧
+                    if (calculatedLeft + pastePopupWidthPx > windowWidthPx) {
+                        calculatedLeft = windowWidthPx - pastePopupWidthPx - 10; // 距离右边缘 10px
+                    }
+                    // 边界检查和调整：确保弹窗不会超出屏幕左侧
+                    if (calculatedLeft < 10) {
+                        calculatedLeft = 10; // 距离左边缘 10px
+                    }
+
+                    // 边界检查和调整：确保弹窗不会超出屏幕底部
+                    if (calculatedTop + pastePopupHeightPx > windowHeightPx) {
+                        calculatedTop = windowHeightPx - pastePopupHeightPx - 10; // 距离底边缘 10px
+                    }
+                    // 边界检查和调整：确保弹窗不会超出屏幕顶部
+                    if (calculatedTop < 10) {
+                        calculatedTop = 10; // 距离顶边缘 10px
+                    }
+
                     this.setData({
                         showPastePopup: true,
                         pasteDateKey: dateKey,
-                        pastePopupTop: rect.top + rect.height / 2, // Center vertically
-                        pastePopupLeft: rect.left + rect.width / 2, // Center horizontally
+                        pastePopupTop: calculatedTop,
+                        pastePopupLeft: calculatedLeft,
                     });
                 }
-            });
+            }).exec();
         }
     },
 
