@@ -8,7 +8,7 @@ Page({
     newIsAllDay: true, // 默认全天
     newStartTime: '09:00',
     newEndTime: '10:00',
-    colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E', '#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'], // 可选颜色
+    colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00'], // 可选颜色
     startX: 0, // 触摸开始时的X坐标
     startY: 0, // 触摸开始时的Y坐标
     currentTagIdSwiped: null, // 当前被滑动打开的标签ID

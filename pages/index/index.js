@@ -16,7 +16,7 @@ Page({
         isAllDay: true, // Default to all-day
         startTime: '09:00', // Default start time
         endTime: '10:00', // Default end time
-        colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E','#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'], // Available colors
+        colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00' ], // Available colors
         allSchedules: {}, // Store all schedules keyed by date (YYYY-M-D)
 
         // Data for Edit Schedule Popup
@@ -105,7 +105,7 @@ Page({
             schedules: [], // Initialize schedules
             allSchedules: wx.getStorageSync('allSchedules') || {},
             allTags: wx.getStorageSync('allTags') || [], // Load allTags on load
-            colors: ['#1E90FF', '#FF6347', '#32CD32', '#FFD700', '#8A2BE2', '#FF69B4', '#4682B4', '#D2691E', '#00FFFF', '#FF00FF', '#ADFF2F', '#FFA500', '#FF1493', '#7B68EE', '#00BFFF', '#F0E68C'],
+            colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00' ],
         });
         this.renderCalendar(year, month);
          // 新增：获取系统信息，计算rpx与px的转换比例
