@@ -8,7 +8,7 @@ Page({
     newIsAllDay: true, // 默认全天
     newStartTime: '09:00',
     newEndTime: '10:00',
-    colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00'], // 可选颜色
+    colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90', '#00b392', '#BDB76B', '#bb80d1', '#DDA0DD', '#A0522D', '#ff4c00', '#FFC000', '#E97451', '#40E0D0', '#CD69C9', '#66CD00', '#9370D', '#CDC9C9'], // 可选颜色
     startX: 0, // 触摸开始时的X坐标
     startY: 0, // 触摸开始时的Y坐标
     currentTagIdSwiped: null, // 当前被滑动打开的标签ID
@@ -19,7 +19,7 @@ Page({
   onLoad: function (options) {
     // 页面加载时执行
     this.loadTags();
-    // 新增：获取系统信息，计算rpx与px的转换比例
+    // 获取系统信息，计算rpx与px的转换比例
     wx.getSystemInfo({
       success: (res) => {
         this.setData({
@@ -27,11 +27,34 @@ Page({
         });
       }
     });
+    
+    // 显示缓存加载成功提示
+    wx.showToast({
+      title: '标签数据已加载',
+      icon: 'success',
+      duration: 1000
+    });
   },
 
   onShow: function () {
     // 页面显示/从其他页面返回时执行，确保标签列表是最新的
     this.loadTags();
+  },
+  
+  // 页面隐藏时保存数据
+  onHide: function () {
+    this.saveDataToStorage();
+  },
+  
+  // 页面卸载时保存数据
+  onUnload: function () {
+    this.saveDataToStorage();
+  },
+  
+  // 保存数据到本地存储
+  saveDataToStorage: function () {
+    // 保存标签数据到本地存储
+    wx.setStorageSync('allTags', this.data.allTags);
   },
 
   /**
@@ -39,7 +62,7 @@ Page({
    */
   loadTags: function () {
     const allTags = wx.getStorageSync('allTags') || [];
-    // 为每个标签项添加slideOffset属性，用于控制滑动位置
+    // 为每个标签项添加或重置slideOffset属性，用于控制滑动位置
     const tagsWithOffset = allTags.map(tag => ({ ...tag, slideOffset: 0 }));
     this.setData({
       allTags: tagsWithOffset,
@@ -171,7 +194,6 @@ Page({
     };
 
     currentallTags.push(newTag); // 将新标签添加到从本地存储获取的数组中
-    wx.setStorageSync('allTags', currentallTags); // 将更新后的数组保存到本地存储
 
     this.setData({
       allTags: currentallTags, // 更新页面的 data
@@ -182,6 +204,9 @@ Page({
       newStartTime: '09:00',
       newEndTime: '10:00',
     });
+    
+    // 保存到本地存储
+    this.saveDataToStorage();
 
     wx.showToast({
       title: '标签保存成功',
@@ -308,12 +333,14 @@ Page({
           console.log('删除前从存储获取的标签:', allTags); // 新增日志
           const updatedTags = allTags.filter(tag => tag.id !== tagIdToDelete);
           console.log('删除后剩余的标签:', updatedTags); // 新增日志
-          wx.setStorageSync('allTags', updatedTags);
-
+          
           this.setData({
             allTags: updatedTags,
             currentTagIdSwiped: null // 删除后重置滑动状态
           });
+          
+          // 保存到本地存储
+          this.saveDataToStorage();
 
           wx.showToast({
             title: '删除成功',
@@ -327,4 +354,4 @@ Page({
       }
     });
   },
-});     
+});

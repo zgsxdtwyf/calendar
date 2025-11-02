@@ -1,0 +1,76 @@
+<!-- dataManagement.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">数据管理</text>
+    <text class="back-button" bindtap="navigateBack">返回</text>
+  </view>
+
+  <view class="section">
+    <view class="section-title">数据备份与恢复</view>
+    <view class="section-content">
+      <view class="info-row">
+        <text class="info-label">上次备份时间：</text>
+        <text class="info-value">{{lastBackupTime || '从未备份'}}</text>
+      </view>
+      
+      <view class="button-group">
+        <button class="primary-button" bindtap="exportData">导出数据</button>
+        <button class="warning-button" bindtap="importData">导入数据</button>
+      </view>
+      
+      <view class="tips">
+        <text class="tips-title">提示：</text>
+        <text class="tips-content">1. 导出数据将复制到剪贴板，请粘贴保存到安全的地方</text>
+        <text class="tips-content">2. 导入数据需从剪贴板读取，请先复制备份数据</text>
+        <text class="tips-content">3. 导入操作将覆盖当前所有日程和标签数据</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">备份提醒设置</view>
+    <view class="section-content">
+      <view class="setting-row">
+        <text>开启备份提醒</text>
+        <switch checked="{{backupReminder}}" bindchange="onReminderSwitchChange" color="#3cc51f"/>
+      </view>
+      
+      <view class="setting-row" bindtap="showReminderSetting">
+        <text>提醒间隔</text>
+        <view class="setting-value">
+          <text>{{reminderInterval}}天</text>
+          <text class="arrow">></text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="warning-section">
+    <text class="warning-title">重要提示</text>
+    <text class="warning-content">清除微信存储空间将导致所有日程和标签数据丢失，请定期备份您的数据！</text>
+  </view>
+</view>
+
+<!-- 提醒间隔设置弹窗 -->
+<view wx:if="{{showReminderSettingPopup}}" class="popup-mask">
+  <view class="popup-content">
+    <view class="popup-header">
+      <text>设置提醒间隔</text>
+      <text class="close-button" bindtap="hideReminderSetting">X</text>
+    </view>
+    
+    <view class="popup-body">
+      <picker mode="selector" range="{{reminderIntervalOptions}}" bindchange="onIntervalChange">
+        <view class="picker-view">
+          <text>每隔</text>
+          <text class="picker-value">{{reminderInterval}}</text>
+          <text>天提醒</text>
+        </view>
+      </picker>
+    </view>
+    
+    <view class="popup-footer">
+      <button class="confirm-button" bindtap="saveReminderSettings">确定</button>
+    </view>
+  </view>
+</view>

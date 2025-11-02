@@ -56,7 +56,7 @@
   /* gap: 1rpx; */
   background-color: #e0e0e0; /* 网格线颜色 */
   border-radius: 10rpx;
-  overflow: hidden; /* 确保内容不溢出 */
+  /* overflow: hidden; 确保内容不溢出 */
 }
 .day {
   display: flex; /* 新增：确保 .day 元素是 flex 容器，以便其内部的 flex 属性生效 */
@@ -67,8 +67,9 @@
   box-sizing: border-box;
   font-size: 28rpx;
   position: relative; /* Needed for paste popup positioning */
-  height: 100%; /* 新增：确保日期格子占据其网格单元格的全部高度 */
-  overflow: hidden; /* 新增：隐藏超出日格子的内容，配合内部滚动 */
+  /* height: 100%; 新增：确保日期格子占据其网格单元格的全部高度 */
+  /* overflow: hidden; 新增：隐藏超出日格子的内容，配合内部滚动 */
+  min-height: 150rpx; /* 设置每个日期单元格的最小高度 */
   background-color: #fff; /* 新增：为每个日期格添加背景色，使其边界更清晰 */
 }
 /* 新增：当日日期特殊显示样式 */
@@ -89,11 +90,11 @@
 .schedule-item-in-day {
   font-size: 20rpx; /* Smaller font for day view */
   color: #fff;
-  padding: 2rpx 5rpx 8rpx 8rpx; /* 修改：增加左侧内边距，使文字从圆角后开始显示 */
+  padding: 2rpx 5rpx 2rpx 8rpx; /* 修改：增加左侧内边距，使文字从圆角后开始显示 */
   margin-bottom: 2rpx;
   border-radius: 4rpx;
   max-width: 100%; /* Prevent overflow */
-  max-height: 28rpx;         /* 增加最小高度 */
+  height: 32rpx;   
   border-radius: 10rpx;  
   overflow: hidden;
   text-overflow: ellipsis;
@@ -102,7 +103,7 @@
   display: flex; /* 新增：使日程条成为 Flex 容器 */
   justify-content: flex-start; /* 新增：内容从左侧开始排列 */
   align-items: center; /* 保持垂直居中 */
-  line-height: 24rpx; /* 新增：设置行高，确保文字垂直居中且不被裁剪 */
+  line-height: 30rpx; /* 新增：设置行高，确保文字垂直居中且不被裁剪 */
 }
 
 .current-month {
@@ -138,6 +139,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden; /* Hide overflow if content is too tall */
+  position: relative; /* 新增：确保子元素的绝对定位相对于此元素 */
 }
 
 .popup-header {
@@ -217,8 +219,8 @@
 }
 
 .add-schedule-button {
-  width: 100rpx;
-  height: 100rpx;
+  width: 80rpx;
+  height: 80rpx;
   background-color: #007bff;
   color: #fff;
   border-radius: 50%;
@@ -230,6 +232,7 @@
   bottom: 40rpx;
   right: 40rpx;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+  z-index: 100; /* 确保按钮在弹窗内容之上 */
 }
 
 /* Create Schedule Form Styles */
@@ -396,7 +399,8 @@
     flex-grow: 1; /* 占据剩余垂直空间 */
     display: flex; /* 使其成为 flex 容器 */
     flex-direction: column; /* 使子项（weekdays和calendar-grid）垂直堆叠 */
-    overflow: hidden; /* 隐藏超出部分，防止滑动时出现滚动条 */
+    overflow: auto; /* 允许垂直滚动 */
+    -webkit-overflow-scrolling: touch; /* 提升 iOS 上的滚动体验 */
     width: 100%; /* 新增：确保占据父容器的全部宽度 */
 }
 

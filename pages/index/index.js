@@ -16,7 +16,7 @@ Page({
         isAllDay: true, // Default to all-day
         startTime: '09:00', // Default start time
         endTime: '10:00', // Default end time
-        colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00' ], // Available colors
+        colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90', '#00b392', '#BDB76B', '#bb80d1', '#DDA0DD', '#A0522D', '#ff4c00', '#FFC000', '#E97451', '#40E0D0', '#CD69C9', '#66CD00', '#9370D', '#CDC9C9'], // Available colors
         allSchedules: {}, // Store all schedules keyed by date (YYYY-M-D)
 
         // Data for Edit Schedule Popup
@@ -63,7 +63,7 @@ Page({
         this.setData({
             isSidebarShow: false
         });
-        // 跳转到标签管理页面，请确保 'pages/tagManagement/tagManagement' 是您标签管理页面的正确路径
+        // 跳转到标签管理页面
         wx.navigateTo({
             url: '/pages/tagManagement/tagManagement',
             fail: (err) => {
@@ -75,55 +75,186 @@ Page({
             }
         });
     },
+    
+    /**
+     * 跳转到数据管理页面
+     */
+    goToDataManagement: function () {
+        // 关闭侧边栏
+        this.setData({
+            isSidebarShow: false
+        });
+        // 跳转到数据管理页面
+        wx.navigateTo({
+            url: '/pages/dataManagement/dataManagement',
+            fail: (err) => {
+                console.error('跳转数据管理页面失败:', err);
+                wx.showToast({
+                    title: '页面不存在',
+                    icon: 'none'
+                });
+            }
+        });
+    },
 
     onLoad: function () {
+        // 引入文件存储工具类
+        const FileStorage = require('../../utils/fileStorage');
+        
         // Page initialization logic
-        // Load schedules from storage on load
-        // const allSchedules = wx.getStorageSync('allSchedules') || {};
-        // // 修改：默认标签现在是对象数组
-        // const defaultTags = [
-        //     { title: '工作', color: '#1E90FF', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-        //     { title: '学习', color: '#32CD32', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-        //     { title: '会议', color: '#FF6347', isAllDay: false, startTime: '14:00', endTime: '15:00' },
-        //     { title: '健身', color: '#8A2BE2', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-        //     { title: '购物', color: '#FFD700', isAllDay: true, startTime: '09:00', endTime: '10:00' },
-        //     { title: '生日', color: '#FF69B4', isAllDay: true, startTime: '09:00', endTime: '10:00' }
-        // ];
-        // const allTags = wx.getStorageSync('allTags') || defaultTags; // 加载已保存的标签，如果为空则提供默认标签
-        // this.setData({
-        //     allSchedules: allSchedules,
-        //     allTags: allTags // 新增：加载标签数据
-        // });
-        // this.renderCalendar(this.data.year, this.data.month);
+        // 加载默认标签
+        const defaultTags = [
+            { title: '工作', color: '#1E90FF', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+            { title: '学习', color: '#32CD32', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+            { title: '会议', color: '#FF6347', isAllDay: false, startTime: '14:00', endTime: '15:00' },
+            { title: '健身', color: '#8A2BE2', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+            { title: '购物', color: '#FFD700', isAllDay: true, startTime: '09:00', endTime: '10:00' },
+            { title: '生日', color: '#FF69B4', isAllDay: true, startTime: '09:00', endTime: '10:00' }
+        ];
+        
+        // 从本地缓存或文件系统加载数据
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth() + 1;
+        
+        // 加载日程数据（优先从本地缓存，如果没有则从文件系统）
+        let allSchedules = FileStorage.getData('allSchedules');
+        if (!allSchedules) {
+            console.log('未找到日程数据，初始化为空对象');
+            allSchedules = {};
+            // 初始化时立即创建备份
+            FileStorage.saveData('allSchedules', allSchedules);
+        }
+        
+        // 加载标签数据，如果没有则使用默认标签
+        let allTags = FileStorage.getData('allTags');
+        
+        // 检查备份提醒设置
+        this.checkBackupReminder();
+        if (!allTags || allTags.length === 0) {
+            // 如果没有保存的标签，则使用默认标签并保存到本地
+            wx.setStorageSync('allTags', defaultTags);
+        }
+        
         this.setData({
             year: year,
             month: month,
             selectedDate: '', // Initialize selectedDate
             schedules: [], // Initialize schedules
-            allSchedules: wx.getStorageSync('allSchedules') || {},
-            allTags: wx.getStorageSync('allTags') || [], // Load allTags on load
-            colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90',  '#00b392', '#BDB76B', '#bb80d1',  '#DDA0DD', '#A0522D', '#ff4c00' ],
+            allSchedules: allSchedules,
+            allTags: allTags || defaultTags, // 使用保存的标签或默认标签
+            colors: ['#FFC0CB', '#F5DEB3', '#ADD8E6', '#d5d755', '#3fa9f5', '#87CEEB', '#90EE90', '#00b392', '#BDB76B', '#bb80d1', '#DDA0DD', '#A0522D', '#ff4c00', '#FF1493', '#00FFFF', '#7FFFD4', '#FFFF00', '#FF69B4', '#00FF7F', '#FF6347', '#32CD32', '#FFD700'],
         });
+        
         this.renderCalendar(year, month);
-         // 新增：获取系统信息，计算rpx与px的转换比例
-         wx.getSystemInfo({
+        
+        // 获取系统信息，计算rpx与px的转换比例
+        wx.getSystemInfo({
             success: (res) => {
                 this.setData({
                     rpxRatio: 750 / res.windowWidth
                 });
             }
         });
+        
+        // 显示缓存加载成功提示
+        wx.showToast({
+            title: '数据已从本地加载',
+            icon: 'success',
+            duration: 1000
+        });
     },
 
     onShow: function () {
-        // 页面显示时重新加载所有标签数据
-        const allTags = wx.getStorageSync('allTags') || [];
+        // 引入文件存储工具类
+        const FileStorage = require('../../utils/fileStorage');
+        
+        // 页面显示时重新加载所有标签数据和日程数据
+        const allTags = FileStorage.getData('allTags') || [];
+        const allSchedules = FileStorage.getData('allSchedules') || {};
+        
         this.setData({
-            allTags: allTags
+            allTags: allTags,
+            allSchedules: allSchedules
         });
+        
+        // 重新渲染日历以显示最新数据
+        this.renderCalendar(this.data.year, this.data.month);
+    },
+    
+    onHide: function() {
+        // 页面隐藏时保存数据到本地缓存
+        this.saveDataToStorage();
+    },
+    
+    onUnload: function() {
+        // 页面卸载时保存数据到本地缓存
+        this.saveDataToStorage();
+    },
+    
+    // 保存数据到本地存储和用户文件目录的通用方法
+    saveDataToStorage: function() {
+        // 引入文件存储工具类
+        const FileStorage = require('../../utils/fileStorage');
+        
+        // 保存日程数据
+        FileStorage.saveData('allSchedules', this.data.allSchedules);
+        
+        // 保存标签数据
+        FileStorage.saveData('allTags', this.data.allTags);
+        
+        console.log('数据已同时保存到本地缓存和用户文件目录');
+    },
+    
+    // 检查备份提醒
+    checkBackupReminder: function() {
+        // 获取备份提醒设置
+        const backupReminder = wx.getStorageSync('backupReminder');
+        
+        // 如果未设置或已关闭，则不提醒
+        if (backupReminder === false) {
+            return;
+        }
+        
+        // 获取上次备份时间和提醒间隔
+        const lastBackupTime = wx.getStorageSync('lastBackupTime');
+        const reminderInterval = wx.getStorageSync('reminderInterval') || 7; // 默认7天
+        
+        // 如果从未备份，提示用户备份
+        if (!lastBackupTime) {
+            wx.showModal({
+                title: '备份提醒',
+                content: '您尚未备份数据，建议定期备份以防数据丢失。是否前往数据管理页面？',
+                confirmText: '前往',
+                cancelText: '稍后',
+                success: (res) => {
+                    if (res.confirm) {
+                        this.goToDataManagement();
+                    }
+                }
+            });
+            return;
+        }
+        
+        // 计算上次备份到现在的天数
+        const lastBackup = new Date(lastBackupTime);
+        const now = new Date();
+        const diffDays = Math.floor((now - lastBackup) / (24 * 60 * 60 * 1000));
+        
+        // 如果超过提醒间隔，提示用户备份
+        if (diffDays >= reminderInterval) {
+            wx.showModal({
+                title: '备份提醒',
+                content: `距离上次备份已经${diffDays}天，建议定期备份以防数据丢失。是否前往数据管理页面？`,
+                confirmText: '前往',
+                cancelText: '稍后',
+                success: (res) => {
+                    if (res.confirm) {
+                        this.goToDataManagement();
+                    }
+                }
+            });
+        }
     },
     // Event handlers for date clicks and button clicks will be added here
     onDayClick: function (event) {
@@ -256,8 +387,11 @@ Page({
             return timeA[1] - timeB[1];
         });
 
-        // 保存到存储
-        wx.setStorageSync('allSchedules', updatedAllSchedules);
+        // 更新数据并保存到本地存储
+        this.setData({
+            allSchedules: updatedAllSchedules
+        });
+        this.saveDataToStorage();
 
         // 更新数据并重新渲染日历
         this.setData({
@@ -339,8 +473,11 @@ Page({
         });
 
 
-        // Save to storage
-        wx.setStorageSync('allSchedules', updatedAllSchedules);
+        // 更新数据并保存到本地存储
+        this.setData({
+            allSchedules: updatedAllSchedules
+        });
+        this.saveDataToStorage();
 
         // Update data
         this.setData({
@@ -520,8 +657,8 @@ Page({
         });
 
 
-        // Save to storage
-        wx.setStorageSync('allSchedules', allSchedules);
+        // 保存到本地存储
+        this.saveDataToStorage();
 
 
         // Update data and re-render calendar or update specific day
@@ -776,9 +913,14 @@ Page({
         // Filter out the schedule to be deleted
         const updatedDaySchedules = daySchedules.filter(s => s.id !== editingScheduleId);
 
-        // Update allSchedules and save to storage
+        // 更新allSchedules
         allSchedules[dateKey] = updatedDaySchedules;
-        wx.setStorageSync('allSchedules', allSchedules);
+        
+        // 更新数据并保存到本地存储
+        this.setData({
+            allSchedules: allSchedules
+        });
+        this.saveDataToStorage();
 
         // Update data and re-render calendar and schedule list
         this.setData({
@@ -880,15 +1022,16 @@ Page({
 
             if (existingTagIndex === -1) { // 如果标签不存在，则添加
                 allTags.push(newTag);
-                wx.setStorageSync('allTags', allTags);
-                wx.showToast({
-                    title: '已保存为标签',
-                    icon: 'success',
-                    duration: 1000
-                });
-                this.setData({
-                    allTags: allTags // 更新data中的allTags
-                });
+            this.setData({
+                allTags: allTags // 更新data中的allTags
+            });
+            // 保存到本地存储
+            this.saveDataToStorage();
+            wx.showToast({
+                title: '已保存为标签',
+                icon: 'success',
+                duration: 1000
+            });
             } else { // 如果标签已存在，则提示
                 wx.showToast({
                     title: '标签已存在',

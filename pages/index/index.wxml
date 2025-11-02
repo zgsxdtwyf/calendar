@@ -224,5 +224,5 @@
 <view class="settings-sidebar {{isSidebarShow ? 'show' : ''}}">
   <view class="sidebar-header">设置</view>
   <view class="sidebar-menu-item" bindtap="goToTagManagement">标签管理</view>
-  <!-- Add more menu items here if needed -->
+  <view class="sidebar-menu-item" bindtap="goToDataManagement">数据管理</view>
 </view>
